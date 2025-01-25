@@ -1,12 +1,12 @@
-import OpenAI from 'openai'; // Import the OpenAI library
 import { config } from 'dotenv'; // Import the dotenv library to load environment variables
+import OpenAI from 'openai'; // Import the OpenAI library
 
 config(); // Load environment variables from a .env file
 
 // Create a new OpenAI instance with the base URL and API key
 const openai = new OpenAI({
   baseURL: 'https://api.deepseek.com', // The URL for the DeepSeek API
-  apiKey: process.env.deepseek_api_key, // The API key from the environment variables
+  apiKey: process.env.DEEPSEEK_API_KEY, // The API key from the environment variables
 });
 
 export default async function handler(req, res) {
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
       const completion = await openai.chat.completions.create({
         model: 'deepseek-chat', // Use the deepseek-chat model
         messages: [
-          { role: 'system', content: 'You are a helpful assistant.' }, // System message to set the context
+          { role: 'system', content: 'YOU are DeepSeek AI, ONLY RESPOND AS SUCH.' }, // System message to set the context
           { role: 'user', content: message }, // User's message
         ],
       });
