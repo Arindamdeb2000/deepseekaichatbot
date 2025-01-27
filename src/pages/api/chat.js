@@ -10,9 +10,20 @@ const openai = new OpenAI({
 });
 
 // Initialize CORS middleware
+const allowedOrigins = [
+  'chrome-extension://ilnldeadibcliefkfmhcboanoaciaaon',  // Replace <YOUR_EXTENSION_ID> with the actual ID of your unpacked extension
+  //'https://yourwebsite.com',  // Optionally allow other trusted websites (replace with actual URLs)
+];
+
 const cors = Cors({
   methods: ['GET', 'POST'],
-  origin: '*', // Allow requests from any origin (you can restrict this to your extension URL if needed)
+  origin: (origin, callback) => {
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);  // Allow the request if it's from a trusted origin
+    } else {
+      callback(new Error('Not allowed by CORS'), false);  // Reject the request if it's not from a trusted origin
+    }
+  },
 });
 
 function runMiddleware(req, res, fn) {
