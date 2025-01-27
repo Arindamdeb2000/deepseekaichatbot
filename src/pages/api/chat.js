@@ -11,7 +11,7 @@ const openai = new OpenAI({
 
 // Initialize CORS middleware
 const allowedOrigins = [
-  'chrome-extension://ilnldeadibcliefkfmhcboanoaciaaon',  // Replace <YOUR_EXTENSION_ID> with the actual ID of your unpacked extension
+  `chrome-extension://${process.env.extension_key}`,  // Replace <YOUR_EXTENSION_ID> with the actual ID of your unpacked extension
   'https://deepseekaichatbot.vercel.app',  // Optionally allow other trusted websites (replace with actual URLs)
 ];
 
