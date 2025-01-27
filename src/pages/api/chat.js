@@ -1,41 +1,57 @@
-import { config } from 'dotenv'; // Import the dotenv library to load environment variables
-import OpenAI from 'openai'; // Import the OpenAI library
+import { config } from 'dotenv'; 
+import OpenAI from 'openai'; 
+import Cors from 'cors'; // Import CORS middleware
 
-config(); // Load environment variables from a .env file
+config();
 
-// Create a new OpenAI instance with the base URL and API key
 const openai = new OpenAI({
-  baseURL: 'https://api.deepseek.com', // The URL for the DeepSeek API
-  apiKey: process.env.DEEPSEEK_API_KEY, // The API key from the environment variables
+  baseURL: 'https://api.deepseek.com',
+  apiKey: process.env.DEEPSEEK_API_KEY,
 });
 
-export default async function handler(req, res) {
-  // Check if the request method is POST
-  if (req.method === 'POST') {
-    const { message } = req.body; // Get the message from the request body
+// Initialize CORS middleware
+const cors = Cors({
+  methods: ['GET', 'POST'],
+  origin: '*', // Allow requests from any origin (you can restrict this to your extension URL if needed)
+});
 
-    // If there is no message, send back an error
+function runMiddleware(req, res, fn) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      return resolve(result);
+    });
+  });
+}
+
+export default async function handler(req, res) {
+  await runMiddleware(req, res, cors); // Apply CORS middleware
+
+  if (req.method === 'POST') {
+    const { message } = req.body;
+
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
     try {
-      // Send the message to the DeepSeek API to get a reply
       const completion = await openai.chat.completions.create({
-        model: 'deepseek-chat', // Use the deepseek-chat model
+        model: 'deepseek-chat',
         messages: [
-          { role: 'system', content: 'YOU are DeepSeek AI, ONLY RESPOND AS SUCH.' }, // System message to set the context
-          { role: 'user', content: message }, // User's message
+          { role: 'system', content: 'YOU are DeepSeek AI, ONLY RESPOND AS SUCH.' },
+          { role: 'user', content: message },
         ],
       });
 
-      const reply = completion.choices[0].message.content; // Get the reply from the API response
-      res.status(200).json({ reply }); // Send the reply back to the client
+      const reply = completion.choices[0].message.content;
+      res.status(200).json({ reply });
     } catch (error) {
-      console.error('Error generating reply:', error); // Log the error
-      res.status(500).json({ error: 'Internal server error' }); // Send back an error response
+      console.error('Error generating reply:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   } else {
-    res.status(405).json({ message: 'Method Not Allowed' }); // If the method is not POST, send back an error
+    res.status(405).json({ message: 'Method Not Allowed' });
   }
 }
